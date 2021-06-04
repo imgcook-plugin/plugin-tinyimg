@@ -5,6 +5,7 @@ module.exports = {
     "cover": "https://img.alicdn.com/tfs/TB1mkjeqlr0gK0jSZFnXXbRRXXa-1404-1292.png",
   },
   "code": {
+    "tinyKey": "2nhHw7JwXKCWM03Wx9xB4nsc2f9gMk6f",
     "panelDisplay": [
       {
         "panelName": "index.jsx",
