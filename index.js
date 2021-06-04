@@ -13,15 +13,35 @@ const paths = require("path")
 const pluginHandler = async options => {
   const { data, filePath, config } = options;
   if (!data.code) return null
-  tinify.key = data.code.tinyKey
-  if (!fs.existsSync(filePath)) {
-    fs.mkdirSync(filePath);
+  tinify.key = data.code.tinyKey || '2nhHw7JwXKCWM03Wx9xB4nsc2f9gMk6f'
+  const panelDisplay = data.code.panelDisplay || [];
+  const imagePath = `${filePath}/images`
+  const tinyImagePath = `${filePath}/tinyImages`
+  if (!fs.existsSync(imagePath)) {
+    fs.mkdirSync(imagePath);
   }
-  const dir = fs.readdirSync(`${filePath}/images`);
+  const dir = fs.readdirSync(imagePath);
+  let imgObj = [];
   for (const file of dir) {
     if (/((\.png)|(\.jpg))$/.test(file)) {
-      const source = tinify.fromFile(`${filePath}/images/${file}`);
-      await source.toFile(`${filePath}/images/${file}`);
+      if (!fs.existsSync(tinyImagePath)) {
+        fs.mkdirSync(tinyImagePath);
+      }
+      const source = tinify.fromFile(`${imagePath}/${file}`);
+      await source.toFile(`${tinyImagePath}/${file}`);
+      imgObj.push({
+        imgPath: `./image/${file}`,
+        tinyImgPath: `./tinyImages/${file}`
+      })
+    }
+  }
+  fs.writeFileSync(`${tinyImagePath}/.imgrc`, JSON.stringify(imgObj), 'utf8');
+
+  for (const item of panelDisplay) {
+    let fileValue = item.panelValue;
+    for (const imgData of imgObj) {
+      const reg = new RegExp(imgData.imgPath, 'g');
+      fileValue = fileValue.replace(reg, imgData.tinyImgPath);
     }
   }
   // body...
