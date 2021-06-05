@@ -8,7 +8,6 @@
 
 const fs = require('fs')
 const tinify = require('tinify')
-const imgExport = require('@imgcook/plugin-images')
 
 
 const pluginHandler = async options => {
@@ -51,8 +50,8 @@ const pluginHandler = async options => {
 };
 
 module.exports = async (...args) => {
-  const data = await imgExport(...args)
-  return pluginHandler(data).catch(err => {
+  const rdata = await require('@imgcook/plugin-images')(...args);
+  return pluginHandler(rdata).catch(err => {
     console.log(err);
   });
 };

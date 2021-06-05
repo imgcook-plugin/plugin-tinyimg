@@ -43,22 +43,15 @@ describe('index.js', () => {
   });
 
   let rdata = options;
-  it('index callback result', async () => {
-
-    if (plugins.length > 0) {
-      // plugin invoke
-      for (const iterator of plugins) {
-        rdata = await require(iterator)(rdata);
-      }
-    }
+  it('index callback result', async (done) => {
 
     rdata = await index(rdata);
     const { data, filePath, config } = rdata;
-
     expect(data).to.be.an('object');
     expect(data.code).to.be.an('object');
     expect(data.code.panelDisplay).to.be.an('array');
     expect(filePath).to.be.a('string');
     expect(config).to.be.an('object');
+    done()
   });
 });
