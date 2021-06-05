@@ -43,7 +43,7 @@ describe('index.js', () => {
   });
 
   let rdata = options;
-  it('index callback result', async (done) => {
+  it('index callback result', async () => {
 
     rdata = await index(rdata);
     const { data, filePath, config } = rdata;
@@ -52,6 +52,5 @@ describe('index.js', () => {
     expect(data.code.panelDisplay).to.be.an('array');
     expect(filePath).to.be.a('string');
     expect(config).to.be.an('object');
-    done()
   });
 });
