@@ -57,7 +57,7 @@ const pluginHandler = async options => {
             curImgObj = item;
           }
         }
-        const reg = new RegExp(imgArr[idx], 'g');
+        const reg = new RegExp(`'${imgArr[idx]}'`, 'g');
         if (!curImgObj.imgPath) {
           await downloadImg(imgArr[idx], imgPathItem);
           if (!fs.existsSync(tinyImgPath)) {
@@ -66,7 +66,7 @@ const pluginHandler = async options => {
           const source = tinify.fromFile(imgPathItem);
           await source.toFile(`${tinyImgPath}/${imgName}`);
           let newImgUrl = '';
-          fileValue = fileValue.replace(reg, `./tinyImages/${imgName}`);
+          fileValue = fileValue.replace(reg, `require('./tinyImages/${imgName}')`);
           imgObj.push({
             newImgUrl,
             imgUrl: imgArr[idx],
@@ -84,29 +84,7 @@ const pluginHandler = async options => {
     item.panelValue = fileValue;
     index++;
   }
-  // for (const file of dir) {
-  //   if (/((\.png)|(\.jpg))$/.test(file)) {
-  //     if (!fs.existsSync(tinyImagePath)) {
-  //       fs.mkdirSync(tinyImagePath);
-  //     }
-  //     const source = tinify.fromFile(`${imagePath}/${file}`);
-  //     await source.toFile(`${tinyImagePath}/${file}`);
-  //     imgObj.push({
-  //       imgPath: `./image/${file}`,
-  //       tinyImgPath: `./tinyImages/${file}`
-  //     })
-  //   }
-  // }
-  // fs.writeFileSync(`${tinyImagePath}/.imgrc`, JSON.stringify(imgObj), 'utf8');
-
-  // for (const item of panelDisplay) {
-  //   let fileValue = item.panelValue;
-  //   for (const imgData of imgObj) {
-  //     const reg = new RegExp(imgData.imgPath, 'g');
-  //     fileValue = fileValue.replace(reg, imgData.tinyImgPath);
-  //   }
-  // }
-  // body...
+  
   return {
     data,
     filePath,
