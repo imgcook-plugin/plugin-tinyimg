@@ -12,7 +12,7 @@ describe('index.js', () => {
     config: {
       accessId: 'xx',
       dslId: 41,
-      generator: ['@imgcook/generator-react'],
+      generator: [],
       plugin: [],
       uploadUrl: '',
       value: '17679'
@@ -42,11 +42,8 @@ describe('index.js', () => {
     }
   });
 
-  let rdata = options;
   it('index callback result', async () => {
-
-    rdata = await index(rdata);
-    const { data, filePath, config } = rdata;
+    const {data,filePath,config} = await index(options);
     expect(data).to.be.an('object');
     expect(data.code).to.be.an('object');
     expect(data.code.panelDisplay).to.be.an('array');

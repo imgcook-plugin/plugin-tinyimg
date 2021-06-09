@@ -8,50 +8,114 @@
 
 const fs = require('fs')
 const tinify = require('tinify')
-
+const {
+  unique,
+  downloadImg
+} = require('@imgcook/cli-utils');
 
 const pluginHandler = async options => {
-  const { data, filePath, config } = options;
+  let imgArr = [];
+  const {
+    data,
+    filePath,
+    config
+  } = options;
   if (!data.code) return null
+  if (!fs.existsSync(filePath)) {
+    fs.mkdirSync(filePath);
+  }
   tinify.key = data.code.tinyKey || '2nhHw7JwXKCWM03Wx9xB4nsc2f9gMk6f'
   const panelDisplay = data.code.panelDisplay || [];
-  const imagePath = `${filePath}/images`
-  const tinyImagePath = `${filePath}/tinyImages`
-  if (!fs.existsSync(imagePath)) {
-    fs.mkdirSync(imagePath);
-  }
-  const dir = fs.readdirSync(imagePath);
-  let imgObj = [];
-  for (const file of dir) {
-    if (/((\.png)|(\.jpg))$/.test(file)) {
-      if (!fs.existsSync(tinyImagePath)) {
-        fs.mkdirSync(tinyImagePath);
-      }
-      const source = tinify.fromFile(`${imagePath}/${file}`);
-      await source.toFile(`${tinyImagePath}/${file}`);
-      imgObj.push({
-        imgPath: `./image/${file}`,
-        tinyImgPath: `./tinyImages/${file}`
-      })
-    }
-  }
-  fs.writeFileSync(`${tinyImagePath}/.imgrc`, JSON.stringify(imgObj), 'utf8');
-
+  const moduleData = data.moduleData;
+  let index = 0;
   for (const item of panelDisplay) {
     let fileValue = item.panelValue;
-    for (const imgData of imgObj) {
-      const reg = new RegExp(imgData.imgPath, 'g');
-      fileValue = fileValue.replace(reg, imgData.tinyImgPath);
+    imgArr = fileValue.match(
+      /(https?):\/\/[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|](\.png|\.jpg)/g
+    );
+    if (imgArr && imgArr.length > 0) {
+      imgArr = unique(imgArr);
+      const imgPath = `${filePath}/images`;
+      const tinyImgPath = `${filePath}/tinyImages`
+      let imgObj = [];
+      const imgrc = `${imgPath}/.imgrc`;
+      if (fs.existsSync(imgrc)) {
+        let imgConfig = fs.readFileSync(imgrc, 'utf8');
+        imgObj = JSON.parse(imgConfig) || [];
+      }
+      for (let idx = 0; idx < imgArr.length; idx++) {
+        if (!fs.existsSync(imgPath)) {
+          fs.mkdirSync(imgPath);
+        }
+        let suffix = imgArr[idx].split('.');
+        suffix = suffix[suffix.length - 1];
+        const imgName = `img_${moduleData.id}_${index}_${idx}.${suffix}`;
+        const imgPathItem = `${imgPath}/${imgName}`;
+        let curImgObj = {};
+        for (const item of imgObj) {
+          if (item.imgUrl === imgArr[idx]) {
+            curImgObj = item;
+          }
+        }
+        const reg = new RegExp(imgArr[idx], 'g');
+        if (!curImgObj.imgPath) {
+          await downloadImg(imgArr[idx], imgPathItem);
+          if (!fs.existsSync(tinyImgPath)) {
+            fs.mkdirSync(tinyImgPath);
+          }
+          const source = tinify.fromFile(imgPathItem);
+          await source.toFile(`${tinyImgPath}/${imgName}`);
+          let newImgUrl = '';
+          fileValue = fileValue.replace(reg, `./tinyImages/${imgName}`);
+          imgObj.push({
+            newImgUrl,
+            imgUrl: imgArr[idx],
+            imgPath: `./images/${imgName}`,
+            tinyImgPath: `./tinyImages/${imgName}`
+          });
+        } else {
+          fileValue = fileValue.replace(reg, curImgObj.imgPath);
+        }
+      }
+      if (imgObj.length > 0) {
+        fs.writeFileSync(imgrc, JSON.stringify(imgObj), 'utf8');
+      }
     }
+    item.panelValue = fileValue;
+    index++;
   }
+  // for (const file of dir) {
+  //   if (/((\.png)|(\.jpg))$/.test(file)) {
+  //     if (!fs.existsSync(tinyImagePath)) {
+  //       fs.mkdirSync(tinyImagePath);
+  //     }
+  //     const source = tinify.fromFile(`${imagePath}/${file}`);
+  //     await source.toFile(`${tinyImagePath}/${file}`);
+  //     imgObj.push({
+  //       imgPath: `./image/${file}`,
+  //       tinyImgPath: `./tinyImages/${file}`
+  //     })
+  //   }
+  // }
+  // fs.writeFileSync(`${tinyImagePath}/.imgrc`, JSON.stringify(imgObj), 'utf8');
+
+  // for (const item of panelDisplay) {
+  //   let fileValue = item.panelValue;
+  //   for (const imgData of imgObj) {
+  //     const reg = new RegExp(imgData.imgPath, 'g');
+  //     fileValue = fileValue.replace(reg, imgData.tinyImgPath);
+  //   }
+  // }
   // body...
-  let result = {};
-  return { data, filePath, config, result };
+  return {
+    data,
+    filePath,
+    config
+  };
 };
 
 module.exports = async (...args) => {
-  const rdata = await require('@imgcook/plugin-images')(...args);
-  return pluginHandler(rdata).catch(err => {
+  return pluginHandler(...args).catch(err => {
     console.log(err);
   });
 };
