@@ -67,6 +67,7 @@ const pluginHandler = async options => {
           await source.toFile(`${tinyImgPath}/${imgName}`);
           let newImgUrl = '';
           fileValue = fileValue.replace(reg, `require('./tinyImages/${imgName}')`);
+          fileValue = fileValue.replace(new RegExp(imgArr[idx], 'g'), `./tinyImages/${imgName}`);
           imgObj.push({
             newImgUrl,
             imgUrl: imgArr[idx],
@@ -84,7 +85,7 @@ const pluginHandler = async options => {
     item.panelValue = fileValue;
     index++;
   }
-  
+
   return {
     data,
     filePath,
