@@ -76,6 +76,7 @@ const pluginHandler = async options => {
           });
         } else {
           fileValue = fileValue.replace(reg, curImgObj.imgPath);
+          fileValue = fileValue.replace(new RegExp(imgArr[idx], 'g'), `./tinyImages/${imgName}`);
         }
       }
       if (imgObj.length > 0) {
