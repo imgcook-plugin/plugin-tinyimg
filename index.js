@@ -88,7 +88,6 @@ const pluginHandler = async options => {
       }
     }
     item.panelValue = fileValue;
-    console.log(item.panelValue)
     index++;
   }
 
